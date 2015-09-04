@@ -103,6 +103,42 @@ Which I work on a bit.
 
 ---
 
+```js
+console.log("UtahJS");
+```
+
+^ Let's start with some code
+
+---
+
+```js
+console.log("SomeOtherConf");
+```
+
+^ But let's say I want to speak at another conference
+
+---
+
+```js
+console.error("SomeOtherConf");
+```
+
+^ You know what. That's not cool. Let's make and error. So we started with logging UtahJs and end up with an error log about another conf What. 
+
+---
+
+![original, fit](git-diff.png)
+
+^ let's diff this using normal `git giff` and see what happeend. ok , great. everything changed. thanks. how helpful of you. Can we do better?
+
+---
+
+# [fit] __*Yes we can!*__
+
+^ And do you know why. Because Syntax Trees are great is why.
+
+---
+
 # *__Version 1__*
 
 1. Create an AST from the new file and the old file
@@ -113,7 +149,23 @@ Which I work on a bit.
 ^ Let's break down how we'll achieve this spectacle.
 
 ---
- 
+
+```
+git diff
+```
+
+^ first thing we need to do is this is get our output into something readable for js
+
+---
+
+```
+git diff --raw
+```
+
+^ first thing we need to do is this is get our output into something readable for our javaScript progtram
+
+---
+
 ![fit](ast-utahjs.png)
 
 ---
@@ -130,13 +182,6 @@ Which I work on a bit.
 
 ---
 
-^ let's diff this using normal `git giff`
-
----
-
-Picture of a tree with 2 limbs in different places
-
----
 
 Picture of thew new tree with everything representing the changes
 
