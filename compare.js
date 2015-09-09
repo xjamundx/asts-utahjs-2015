@@ -7,7 +7,7 @@ var esrecurse = require('esrecurse');
 var util = require('util');
 
 // parser options
-var options = { ecmaFeatures: { modules: true } };
+var options = { ecmaFeatures: { modules: true, arrowFunctions: true, blockBindings: true } };
 
 // read input
 var lines = fs.readFileSync('/dev/stdin').toString().split('\n');
@@ -35,6 +35,37 @@ var trees = lines.filter(function(line) { return line; }).map(function(line) {
 		after: espree.parse(after, options)
 	};
 });
+
+function deepEqual(a, b) {
+	if (a === b) {
+		return true;
+	}
+	if (!a || !b) {
+		return false;
+	}
+	if (Array.isArray(a)) {
+		return a.every(function(item, i) {
+			return deepEqual(item, b[i]);
+		});
+	}
+	if (typeof a === 'object') {
+		var o = Object.keys(a).every(function(key) {
+			return deepEqual(a[key], b[key]);
+		});
+		if (!o) {
+			console.log('"[' + a.type + ']" => "[' + b.type + ']"');
+		}
+		return o;
+	}
+	console.log('"' + a + '" => "' + b + '"');
+	return false;
+}
+
+// console.log(trees.length);
+trees.forEach(function(diff) {
+	// deepEqual(diff.before, diff.after);
+});
+
 
 // compare 2 trees for differences in function
 function getChangedFunctions(tree1, tree2) {
@@ -85,14 +116,92 @@ function getChangedVariables(tree1, tree2) {
 	}));
 }
 
+function getOutputType(node) {
+	var params = node.declaration.params.map(function(param) {
+		return param.name;
+	});
+	var hasCallback = params[params.length - 1] === 'callback';
+	var body = node.declaration.body.body || node.declaration.body;
+	var hasReturn = body.some(function(node) {
+		return node.type === 'ReturnStatement';
+	});
+	var returnOrExecute = hasReturn ? 'return' : '';
+	return hasCallback ? 'callback' : returnOrExecute;
+}
+
+function getChangedExports(before, after) {
+	var thing1 = {}, thing2 = {};
+	function inspectExport(result, node) {
+		result[node.declaration.id.name] = {
+			name: node.declaration.id.name,
+			params: node.declaration.params.map(function(param) {
+				return param.name;
+			}),
+			outputType: getOutputType(node)
+		};
+	}
+	esrecurse.visit(before, {
+		ExportNamedDeclaration: inspectExport.bind(null, thing1)
+	});
+	esrecurse.visit(after, {
+		ExportNamedDeclaration: inspectExport.bind(null, thing2)
+	});
+	return {
+		before: thing1,
+		after: thing2
+	};
+}
+
 // convert the trees into some useful info
 var diffs = trees.map(function(diff) {
 	return {
 		filename: diff.filename,
-		functions: getChangedFunctions(diff.before, diff.after),
-		variables: getChangedVariables(diff.before, diff.after)
+		exports: getChangedExports(diff.before, diff.after)
+		// functions: getChangedFunctions(diff.before, diff.after),
+		// variables: getChangedVariables(diff.before, diff.after)
 	};
 });
 
-console.log(util.inspect(diffs, { depth: null }));
+function getWhatHappened(exported) {
+	if (!exported.before) {
+		return "was added"
+	}
+	if (!exported.after) {
+		return "was removed"
+	}
+	if (exported.before.outputType !== exported.after.outputType) {
+		return "went from a " + exported.before.outputType + " to a " + exported.after.outputType;
+	}
+}
+
+function getActualReadable(exports) {
+	return Object.keys(exports).reduce(function(prev, curr, i) {
+		var visiblity = "exported";
+		var name = curr;
+		var whatHappened = getWhatHappened(exports[curr]);
+		var info = "The " + visiblity + " `" + name + "` function " + whatHappened + ".";
+		return prev + (i + 1) + ". " + info + "\n";
+	}, "");
+}
+
+function getReadableExports(exports) {
+	var exported = Object.keys(exports.after).reduce(function(prev, curr) {
+		prev[curr] = {
+			before: exports.before[curr],
+			after: exports.after[curr]
+		};
+		return prev;
+	}, {});
+	return getActualReadable(exported);
+}
+
+// console.log(util.inspect(miffs, { depth: null }));
+
+var miffs = diffs.map(function(diff) {
+	// console.log(diff);
+	return diff.filename + "\n" + getReadableExports(diff.exports);
+}).join("\n");
+
+console.log(miffs);
+
 
