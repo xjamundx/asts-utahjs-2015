@@ -117,11 +117,11 @@ function getChangedVariables(tree1, tree2) {
 }
 
 function getOutputType(node) {
-	var params = node.declaration.params.map(function(param) {
+	var params = node.params.map(function(param) {
 		return param.name;
 	});
 	var hasCallback = params[params.length - 1] === 'callback';
-	var body = node.declaration.body.body || node.declaration.body;
+	var body = node.body.body || node.body; // usually child is a BlockStatement node
 	var hasReturn = body.some(function(node) {
 		return node.type === 'ReturnStatement';
 	});
@@ -129,38 +129,65 @@ function getOutputType(node) {
 	return hasCallback ? 'callback' : returnOrExecute;
 }
 
-function getChangedExports(before, after) {
-	var thing1 = {}, thing2 = {};
-	function inspectExport(result, node) {
-		result[node.declaration.id.name] = {
-			name: node.declaration.id.name,
-			params: node.declaration.params.map(function(param) {
-				return param.name;
-			}),
-			outputType: getOutputType(node)
-		};
-	}
-	esrecurse.visit(before, {
-		ExportNamedDeclaration: inspectExport.bind(null, thing1)
-	});
-	esrecurse.visit(after, {
-		ExportNamedDeclaration: inspectExport.bind(null, thing2)
-	});
+function inspectFunction(node, visiblity) {
 	return {
-		before: thing1,
-		after: thing2
+		name: node.id.name,
+		params: node.params.map(function(param) {
+			return param.name;
+		}),
+		visibility: visiblity || "private",
+		outputType: getOutputType(node)
 	};
+}
+
+function getChangedExports(diff) {
+	var results = {};
+	esrecurse.visit(diff.before, {
+		ExportNamedDeclaration: function(node) {
+			var details = inspectFunction(node.declaration, "exported");
+			results[details.name] = results[details.name] || {};
+			results[details.name].before = details;
+		},
+		FunctionDeclaration: function(node) {
+			var details = inspectFunction(node);
+			results[details.name] = results[details.name] || {};
+			results[details.name].before = details;
+		}
+	});
+	esrecurse.visit(diff.after, {
+		ExportNamedDeclaration: function(node) {
+			var details = inspectFunction(node.declaration, "exported");
+			results[details.name] = results[details.name] || {};
+			results[details.name].after = details;
+		},
+		FunctionDeclaration: function(node) {
+			var details = inspectFunction(node);
+			results[details.name] = results[details.name] || {};
+			results[details.name].after = details;
+		}
+	});
+	return results;
 }
 
 // convert the trees into some useful info
 var diffs = trees.map(function(diff) {
 	return {
 		filename: diff.filename,
-		exports: getChangedExports(diff.before, diff.after)
+		functions: getChangedExports(diff)
 		// functions: getChangedFunctions(diff.before, diff.after),
 		// variables: getChangedVariables(diff.before, diff.after)
 	};
 });
+
+function getReadableOutput(exports) {
+	return Object.keys(exports).reduce(function(prev, curr, i) {
+		var visibility = exports[curr].after.visibility;
+		var name = curr;
+		var whatHappened = getWhatHappened(exports[curr]);
+		var info = "The " + visibility + " `" + name + "` function " + whatHappened + ".";
+		return prev + (i + 1) + ". " + info + "\n";
+	}, "");
+}
 
 function getWhatHappened(exported) {
 	if (!exported.before) {
@@ -174,32 +201,12 @@ function getWhatHappened(exported) {
 	}
 }
 
-function getActualReadable(exports) {
-	return Object.keys(exports).reduce(function(prev, curr, i) {
-		var visiblity = "exported";
-		var name = curr;
-		var whatHappened = getWhatHappened(exports[curr]);
-		var info = "The " + visiblity + " `" + name + "` function " + whatHappened + ".";
-		return prev + (i + 1) + ". " + info + "\n";
-	}, "");
-}
-
-function getReadableExports(exports) {
-	var exported = Object.keys(exports.after).reduce(function(prev, curr) {
-		prev[curr] = {
-			before: exports.before[curr],
-			after: exports.after[curr]
-		};
-		return prev;
-	}, {});
-	return getActualReadable(exported);
-}
 
 // console.log(util.inspect(miffs, { depth: null }));
 
 var miffs = diffs.map(function(diff) {
 	// console.log(diff);
-	return diff.filename + "\n" + getReadableExports(diff.exports);
+	return diff.filename + "\n" + getReadableOutput(diff.functions);
 }).join("\n");
 
 console.log(miffs);
