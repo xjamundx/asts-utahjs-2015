@@ -6,13 +6,14 @@
 
 # [fit] *__Parsers__* 
 
-^ take JavaScript and turn it into a AST
+^ Who knows about parsers?
 
 ---
 
 ```js
 console.log("UtahJS");
 ```
+^ They take code and turn it into a tree.
 
 ---
 
@@ -126,21 +127,13 @@ interested in writing these "codemod" tools that change your JS from one thing t
 
 ---
 
+# Babel Plugin
+
 ```js
 module.exports = function (Babel) {
   return new Babel.Plugin("plugin-example", {
     visitor: {    
-
-      // this is the node we care about
-      FunctionDeclaration: function (node, parent) {
-        var id = node.id;
-        node.type = "FunctionExpression";
-        node.id   = null;
-        
-        return Babel.types.variableDeclaration("var", [
-          Babel.types.variableDeclarator(id, node)
-        ]);
-      }
+      "FunctionDeclaration": swapWithExpression
     }
   });
 }
@@ -149,6 +142,165 @@ module.exports = function (Babel) {
 ^ 15 lines of code. this is fractal level of how a tiny bit of code can lead to huge changes. And what do you have to know? Not very much!
 What they rely on here is basic knowledge of the AST format. They're talkin about `FunctionDeclaration`s and basically replacing them with
 `FunctionExpression` wrapped in a `VariableDeclaration`. It's not rocket science, but it can take your code to the moon.
+
+---
+
+# Guts
+
+
+```js
+function swapWithExpression(node, parent) {
+    var id = node.id;
+    
+    // change from declaration to expression
+    node.type = "FunctionExpression";
+    node.id  = null;
+        
+    // wrap that sucker in a variable declaration
+    return Babel.types.variableDeclaration("var", [
+        Babel.types.variableDeclarator(id, node)
+    ]);
+}
+```
+
+---
+
+# [fit] It's not that hard
+
+^ But you you've got to learn your node types. It's like the
+times table of ASTs or like the dinner table.
+It's very important.
+
+---
+
+# Expressions
+
+![original, right](trees.jpg)
+
+```md
+- FunctionExpression
+- MemberExpression
+- CallExpression
+- NewExpression
+- ConditionalExpression
+- LogicalExpression
+- UpdateExpression
+- AssignmentExpression
+- BinaryExpression
+- UnaryExpression
+- SequenceExpression
+- ObjectExpression
+- ArrayExpression
+- ThisExpression
+```
+	
+---
+
+# Statements
+
+![original, left](trees.jpg)
+
+```md
+- DebuggerStatement
+- ForInStatement
+- ForStatement
+- DoWhileStatement
+- WhileStatement
+- CatchClause
+- TryStatement
+- ThrowStatement
+- ReturnStatement
+- SwitchStatement
+- WithStatement
+- ContinueStatement
+- BreakStatement
+- LabeledStatement
+- IfStatement
+- ExpressionStatement
+- BlockStatement
+- EmptyStatement
+```
+
+---
+
+# ES6 Specifics
+
+---
+
+# Statements
+
+```md
+  - ForOfStatement
+```
+
+---
+
+# Expressions
+
+```md
+  - ArrowFunctionExpression
+  - YieldExpression
+```
+
+---
+# Template Literals
+
+```md
+  - TemplateLiteral
+  - TaggedTemplateExpression
+  - TemplateElement
+```
+  
+---
+## Patterns
+```md
+  - ObjectPattern
+  - ArrayPattern
+  - RestElement
+  - AssignmentPattern
+```
+
+^ these are like destructuring or whatever
+
+---
+
+## Classes
+
+```md
+  - ClassBody
+  - MethodDefinition
+  - ClassDeclaration
+  - ClassExpression
+  - MetaProperty
+```
+
+---
+
+## Modules
+
+```md
+  - ModuleDeclaration
+  - ModuleSpecifier
+  - ImportDeclaration
+  - ImportSpecifier
+  - ImportDefaultSpecifier
+  - ImportNamespaceSpecifier
+  - ExportNamedDeclaration
+  - ExportSpecifier
+  - ExportDefaultDeclaration
+  - ExportAllDeclaration
+```
+
+^ That's a lot to learn. So why even bother?
+
+---
+
+![fit](estree.png)
+
+^ IF you want to learn this stuff you need to go here. It's the repo for something called
+called `ESTree`. Basically all of the major parser folks got together including babel people
+and whatever and decided to speak the same language for building their trees. Now this built on top
+of an older spec called the Spidermonkey API, but it supersedes and replaces it.
 
 ---
 
