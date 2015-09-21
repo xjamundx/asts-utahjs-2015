@@ -1,4 +1,4 @@
-![original](trees.jpg)
+![original](images/trees.jpg)
 
 ## Harnessing the power of __*Abstract Syntax Trees*__
 
@@ -17,7 +17,7 @@ console.log("UtahJS");
 
 ---
 
-![fit](ast-utahjs.png)
+![fit](images/ast-utahjs.png)
 
 ---
 ```js
@@ -58,7 +58,7 @@ I do to. Let's stick with pictures...
 
 ---
 
-![fit](ast-utahjs.png)
+![fit](images/ast-utahjs.png)
 
 ^ Isn't that better
 
@@ -113,7 +113,7 @@ acorn.parse("console.log('UtahJS')", { ecmaVersion: 6 });
 
 ---
 
-![original](trees.jpg)
+![original](images/trees.jpg)
 # *ASTs are Everywhere*
 
 ^ They're in browsers, in transpilers, minifiers. All of the cool build tools these days 
@@ -130,7 +130,7 @@ interested in writing these "codemod" tools that change your JS from one thing t
 
 ---
 
-![](babel-plugin.png)
+![](images/babel-plugin.png)
 
 
 ^ Let's take a look at the example repo. It's 1 actual file. 
@@ -255,7 +255,7 @@ up the trees.  Now there are * ALOT * of nodes.
 
 ---
 
-![fit](estree.png)
+![fit](images/estree.png)
 
 ^ IF you want to learn this stuff you need to go here. It's the repo for something called
 called `ESTree`. Basically all of the major parser folks got together including babel people
@@ -276,7 +276,7 @@ of an older spec called the Spidermonkey API, but it supersedes and replaces it.
 
 ---
 
-![fit](learning-perl.jpg)
+![fit](images/learning-perl.jpg)
 
 ^ I love this quote from the book Learning Perl. I also like LLamas.
 
@@ -319,7 +319,7 @@ console.error("SomeOtherConf");
 
 ---
 
-![original, fit](git-diff.png)
+![original, fit](images/git-diff.png)
 
 ^ let's diff this using normal `git giff` and see what happeend. ok , great. everything changed. thanks. how helpful of you. Can we do better?
 
@@ -351,13 +351,13 @@ git diff
 
 ---
 
-![fit](diff-raw.png)
+![fit](images/diff-raw.png)
 
 ^ first thing we need to do is this is get our output into something readable for our javaScript progtram
 
 ---
 
-![fit](diff-raw-notes-high.png)
+![fit](images/diff-raw-notes-high.png)
 
 ^ What we care about here is the md5 hash of the original version of the file and the filename. We can use `git show` on the md5 hash to get
 the original version of the file and we can use of course use the filename to get the current version. Now that we've learned how to read this output, let's teach our computer.
@@ -472,13 +472,13 @@ Here's what those trees look like...
 
 ---
 
-![fit](ast-utahjs.png)
+![fit](images/ast-utahjs.png)
 
 ^ Here's the first one. Where we're console.loggin("utahJS");
 
 ---
 
-![fit](ast-error.png)
+![fit](images/ast-error.png)
 
 ^ And of course the final change where we decide that was in error.....we've got the trees.
 
@@ -568,20 +568,20 @@ more about what changed.
 
 ---
 
-![original, fit](git-diff.png)
+![original, fit](images/git-diff.png)
 
 
 ^ Whereas before you see the whole code. Now you get to see the whole tree.
 
 ---
 
-![fit](ast-diff.png)
+![fit](images/ast-diff.png)
 
 ^ Now you can see the full tree with changes marked clearly. It's powerful. For our last trick we're going to endeavor to make this actually useful on a large scale. 
 
 ---
 
-![fit](huge-tree.png)
+![fit](images/huge-tree.png)
 
 
 ^ Of course where this cool tree diff falls apart is when you have more than 1 or 2 small changes. Here's a progran with around 30 lines.
@@ -668,7 +668,7 @@ There are no promises when dealing with "King County". Trust me. (bad joke?)
 
 ---
 
-![fit](git-dff-house.png)
+![fit](images/git-dff-house.png)
 
 ^ even if we disable the whitespace the diff is almost useless. new stuff is mixed in with the old stuff. the return statement turning into a 
 callback isn't that bad. the nesting of everything is gone. Because we added the getPermits function it doesnt' realize that only actual
@@ -805,7 +805,7 @@ names, their paramaters and the output type. Let's put it all together....
 
 ---
 
-# [fit] Data => Words
+# _**Data => Words**_
 
 ^ final step. ok well 3 steps. fast.
 
@@ -884,17 +884,17 @@ house.js
 
 ---
 
-# ASTS ARE SUPER POWERFUL
+# TREES ARE SUPER POWERFUL
 
-![original](tree-power.jpg)
+![original](images/tree-power.jpg)
 
-^ Remember trees are super powerful.
+^ Remember ASTs are super powerful.
 I hope I've made you want to learn more.
 - Thanks
 
 ---
 
-![original](tree-power.jpg)
+![original](images/tree-power.jpg)
 # [fit] *Questions?*
 
 ---
