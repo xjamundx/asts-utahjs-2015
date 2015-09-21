@@ -36,85 +36,24 @@ var trees = lines.filter(function(line) { return line; }).map(function(line) {
 	};
 });
 
-function deepEqual(a, b) {
-	if (a === b) {
-		return true;
-	}
-	if (!a || !b) {
-		return false;
-	}
-	if (Array.isArray(a)) {
-		return a.every(function(item, i) {
-			return deepEqual(item, b[i]);
-		});
-	}
-	if (typeof a === 'object') {
-		var o = Object.keys(a).every(function(key) {
-			return deepEqual(a[key], b[key]);
-		});
-		if (!o) {
-			console.log('"[' + a.type + ']" => "[' + b.type + ']"');
-		}
-		return o;
-	}
-	console.log('"' + a + '" => "' + b + '"');
-	return false;
-}
+// get readable output from our trees
+var readableOutput = trees.map(function(diff) {
+	return {
+		filename: diff.filename,
+		functions: getChangedExports(diff)
+		// functions: getChangedFunctions(diff.before, diff.after),
+		// variables: getChangedVariables(diff.before, diff.after)
+	};
+}).map(function(diff) {
+	// console.log(diff);
+	return diff.filename + "\n" + getReadableOutput(diff.functions);
+}).join("\n");
 
-// console.log(trees.length);
-trees.forEach(function(diff) {
-	// deepEqual(diff.before, diff.after);
-});
+console.log(readableOutput);
 
-
-// compare 2 trees for differences in function
-function getChangedFunctions(tree1, tree2) {
-	var functions1 = [];
-	var functions2 = [];
-	function visitor(store) {
-		return {
-			FunctionExpression: function (node) {
-				store.push({
-					name: node.id && node.id.name || "[anonymous]", params: node.params.map(function (param) {
-						return param.name;
-					})
-				});
-			},
-			FunctionDeclaration: function (node) {
-				store.push({
-					name: node.id.name, params: node.params.map(function (param) {
-						return param.name;
-					})
-				});
-			}
-		};
-	}
-	esrecurse.visit(tree1, visitor(functions1));
-	esrecurse.visit(tree2, visitor(functions2));
-	return functions1.length + " vs. " + functions2.length;
-}
-
-function getChangedVariables(tree1, tree2) {
-	var variables1 = [];
-	var variables2 = [];
-	function visitor(store) {
-		return {
-			VariableDeclarator: function (node) {
-				store.push(node.id && node.id.name);
-			},
-			FunctionDeclaration: function (node) {
-				store.push(node.id && node.id.name || '[anonymous]');
-			}
-		};
-	}
-	esrecurse.visit(tree1, visitor(variables1));
-	esrecurse.visit(tree2, visitor(variables2));
-	return variables1.map(function(variable) {
-		return '-' + variable;
-	}).concat(variables2.map(function(variable) {
-		return '+' + variable;
-	}));
-}
+/********************
+ * Private Functions
+ *******************/
 
 function getOutputType(node) {
 	var params = node.params.map(function(param) {
@@ -169,15 +108,6 @@ function getChangedExports(diff) {
 	return results;
 }
 
-// convert the trees into some useful info
-var diffs = trees.map(function(diff) {
-	return {
-		filename: diff.filename,
-		functions: getChangedExports(diff)
-		// functions: getChangedFunctions(diff.before, diff.after),
-		// variables: getChangedVariables(diff.before, diff.after)
-	};
-});
 
 function getReadableOutput(exports) {
 	return Object.keys(exports).reduce(function(prev, curr, i) {
@@ -201,14 +131,27 @@ function getWhatHappened(exported) {
 	}
 }
 
-
-// console.log(util.inspect(miffs, { depth: null }));
-
-var miffs = diffs.map(function(diff) {
-	// console.log(diff);
-	return diff.filename + "\n" + getReadableOutput(diff.functions);
-}).join("\n");
-
-console.log(miffs);
-
-
+//function deepEqual(a, b) {
+//	if (a === b) {
+//		return true;
+//	}
+//	if (!a || !b) {
+//		return false;
+//	}
+//	if (Array.isArray(a)) {
+//		return a.every(function(item, i) {
+//			return deepEqual(item, b[i]);
+//		});
+//	}
+//	if (typeof a === 'object') {
+//		var o = Object.keys(a).every(function(key) {
+//			return deepEqual(a[key], b[key]);
+//		});
+//		if (!o) {
+//			console.log('"[' + a.type + ']" => "[' + b.type + ']"');
+//		}
+//		return o;
+//	}
+//	console.log('"' + a + '" => "' + b + '"');
+//	return false;
+//}

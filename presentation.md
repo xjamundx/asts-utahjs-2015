@@ -4,7 +4,7 @@
 
 ---
 
-# [fit] *__Parsers__* 
+# *__Parsers__* 
 
 ^ Who knows about parsers?
 
@@ -65,7 +65,7 @@ I do to. Let's stick with pictures...
 ---
 
 
-# [fit] *__Acorn__*
+# *__Acorn__*
 
 ^ is the parser to beat these days
 
@@ -73,7 +73,7 @@ I do to. Let's stick with pictures...
 
 ---
 
-# [fit] *__Espree__*
+# *__Espree__*
 
 ^ Is the parser I know the best. It's a fork off esprima, with better ES6 stuff and it's what we use in ESLint.
 Which I work on a bit.
@@ -84,11 +84,10 @@ Which I work on a bit.
 
 ```js
 // generate an AST from a string of code
-espree.parse("console.log('UtahJS)");
+espree.parse("console.log('UtahJS')");
 ```
 
-^ once I get the actual JavaScript all i need to do is run `espree.parse()`. So let's convert our
-tuple of files into some trees, sound goood?
+^ Parsers are treat and in general super simple. I just pass in some code.
 
 ---
 
@@ -96,10 +95,21 @@ tuple of files into some trees, sound goood?
 
 ```js
 // generate an AST from a string of code
-acorn.parse("console.log('UtahJS)");
+acorn.parse("console.log('UtahJS')");
 ```
 
 ^ Now you could swap that out with acorn if you wanted without much work....it's the same API and produces very similar output.
+
+---
+
+# Parsing ES6
+
+```js
+// generate an AST from a string of code
+acorn.parse("console.log('UtahJS')", { ecmaVersion: 6 });
+```
+
+^ you want to turn on es6 stuff, Here's how you'd do that. Options are different between parsers, but the API is the same, and the tree is basically the same. 
 
 ---
 
@@ -165,61 +175,11 @@ function swapWithExpression(node, parent) {
 
 ---
 
-# [fit] It's not that hard
+# [fit] Know Your NODES
 
-^ But you you've got to learn your node types. It's like the
-times table of ASTs or like the dinner table.
-It's very important.
-
----
-
-# Expressions
-
-![original, right](trees.jpg)
-
-```md
-- FunctionExpression
-- MemberExpression
-- CallExpression
-- NewExpression
-- ConditionalExpression
-- LogicalExpression
-- UpdateExpression
-- AssignmentExpression
-- BinaryExpression
-- UnaryExpression
-- SequenceExpression
-- ObjectExpression
-- ArrayExpression
-- ThisExpression
-```
-	
----
-
-# Statements
-
-![original, left](trees.jpg)
-
-```md
-- DebuggerStatement
-- ForInStatement
-- ForStatement
-- DoWhileStatement
-- WhileStatement
-- CatchClause
-- TryStatement
-- ThrowStatement
-- ReturnStatement
-- SwitchStatement
-- WithStatement
-- ContinueStatement
-- BreakStatement
-- LabeledStatement
-- IfStatement
-- ExpressionStatement
-- BlockStatement
-- EmptyStatement
-```
+^ In order to do this stuff though you have to learn 
+all of the different nodes. This the stuff that makes
+up the trees.  Now there are * ALOT * of nodes.
 
 ---
 
@@ -291,7 +251,7 @@ It's very important.
   - ExportAllDeclaration
 ```
 
-^ That's a lot to learn. So why even bother?
+^ bleh. too much to learn. don't forgoet all of the rest of it.... 
 
 ---
 
@@ -929,11 +889,11 @@ house.js
 ![original](tree-power.jpg)
 
 ^ Remember trees are super powerful.
-They can give you super-powers.
-They make impossibly difficult things seem possible.
+I hope I've made you want to learn more.
 - Thanks
 
 ---
+
 ![original](tree-power.jpg)
 # [fit] *Questions?*
 
