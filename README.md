@@ -5,6 +5,6 @@ Markdown: [presentation.md](https://github.com/xjamundx/asts-utahjs-2015/blob/ma
 
 PDF: [presentation.pdf](https://github.com/xjamundx/asts-utahjs-2015/blob/master/presentation.pdf)
 
-Code: [compare.js](https://github.com/xjamundx/asts-utahjs-2015/blob/master/compare.js)
+Code: [compare.js](https://github.com/xjamundx/asts-utahjs-2015/blob/master/code/compare.js)
 
 Presented with [Deckset](http://www.decksetapp.com)
