@@ -141,12 +141,26 @@ interested in writing these "codemod" tools that change your JS from one thing t
 
 ```js
 module.exports = function (Babel) {
-  return new Babel.Plugin("plugin-example", {
-    visitor: {    
-      "FunctionDeclaration": swapWithExpression
-    }
-  });
-}
+    return new Babel.Plugin("plugin-example", {
+        // visitor: {
+        //     "FunctionDeclaration": swapWithExpression
+        // }
+    });
+};
+```
+
+---
+
+# Babel Plugin
+
+```js
+module.exports = function (Babel) {
+    return new Babel.Plugin("plugin-example", {
+        visitor: {
+            "FunctionDeclaration": swapWithExpression
+        }
+    });
+};
 ```
 
 ^ 15 lines of code. this is fractal level of how a tiny bit of code can lead to huge changes. And what do you have to know? Not very much!
@@ -160,13 +174,47 @@ What they rely on here is basic knowledge of the AST format. They're talkin abou
 
 ```js
 function swapWithExpression(node, parent) {
+    var id = node.id;    
+    // change the node type
+    // node.type = "FunctionExpression";
+    // node.id  = null;
+    // return a variable declaration
+    // return Babel.types.variableDeclaration("var", [
+    //    Babel.types.variableDeclarator(id, node)
+    // ]);
+}
+```
+
+---
+
+# Guts
+
+
+```js
+function swapWithExpression(node, parent) {
     var id = node.id;
-    
-    // change from declaration to expression
+    // change the node type
     node.type = "FunctionExpression";
     node.id  = null;
-        
-    // wrap that sucker in a variable declaration
+    // return a variable declaration        
+    // return Babel.types.variableDeclaration("var", [
+    //    Babel.types.variableDeclarator(id, node)
+    // ]);
+}
+```
+
+---
+
+# Guts
+
+
+```js
+function swapWithExpression(node, parent) {
+    var id = node.id;
+    // change the node type
+    node.type = "FunctionExpression";
+    node.id  = null;
+    // return a variable declaration        
     return Babel.types.variableDeclaration("var", [
         Babel.types.variableDeclarator(id, node)
     ]);
@@ -175,7 +223,7 @@ function swapWithExpression(node, parent) {
 
 ---
 
-# [fit] Know Your NODES
+# Know Your *__NODES__*
 
 ^ In order to do this stuff though you have to learn 
 all of the different nodes. This the stuff that makes
@@ -325,7 +373,7 @@ console.error("SomeOtherConf");
 
 ---
 
-# [fit] __*Yes we can!*__
+# __*Yes we can!*__
 
 ^ And do you know why. Because Syntax Trees are great is why.
 
@@ -392,6 +440,28 @@ var lines = fs.readFileSync('/dev/stdin').toString().split('\n');
 ```js
 lines.map(function(line) {
 	var parts = line.split(' ');
+	// var file = parts.pop().split('\t');
+	// return [file[1], parts[2].slice(0, -3)];
+});
+```
+^ next we'll map each of these lines into a tuple of the two important parts of that line
+
+---
+
+```js
+lines.map(function(line) {
+	var parts = line.split(' ');
+	var file = parts.pop().split('\t');
+	// return [file[1], parts[2].slice(0, -3)];
+});
+```
+^ next we'll map each of these lines into a tuple of the two important parts of that line
+
+---
+
+```js
+lines.map(function(line) {
+	var parts = line.split(' ');
 	var file = parts.pop().split('\t');
 	return [file[1], parts[2].slice(0, -3)];
 });
@@ -401,7 +471,7 @@ lines.map(function(line) {
 ---
 
 ```js
-// the key parts of each line in our git diff
+// the key parts of our git diff
 [ [ "tree1.js", "9a0b08f"] ]
 ```
 
@@ -422,6 +492,36 @@ tuple of files into some trees, sound goood?
 ```js
 .map(function(files) {
 	var after = fs.readFileSync(files[0]);
+	// var before = child_process.execSync("git show" + files[1]);
+	// return {
+	//	  filename: files[0],
+	//	  before: espree.parse(before, options),
+	//	  after: espree.parse(after, options)
+	// };
+})
+```
+^ And now: Trees
+
+---
+
+```js
+.map(function(files) {
+	var after = fs.readFileSync(files[0]);
+	var before = child_process.execSync("git show" + files[1]);
+	// return {
+	//	  filename: files[0],
+	//	  before: espree.parse(before, options),
+	//	  after: espree.parse(after, options)
+	// };
+})
+```
+^ And now: Trees
+
+---
+
+```js
+.map(function(files) {
+	var after = fs.readFileSync(files[0]);
 	var before = child_process.execSync("git show" + files[1]);
 	return {
 		filename: files[0],
@@ -434,6 +534,20 @@ tuple of files into some trees, sound goood?
 
 ---
 
+```js
+.map(function(files) {
+	var after = fs.readFileSync(files[0]);
+	var before = child_process.execSync("git show" + files[1]);
+	return {
+		filename: files[0],
+		before: espree.parse(before, options),
+		after: espree.parse(after, options)
+	};
+})
+```
+^ And now: Trees
+
+---
 
 ```js
 [{
@@ -445,6 +559,10 @@ tuple of files into some trees, sound goood?
 
 ^ With that we now have gone from an array of stdin to an array of objects
 with the filename and before an after trees... in not all the much code
+
+---
+
+# [fit] *FITS ON ONE SLIDE**
 
 ---
 
@@ -530,19 +648,69 @@ to be an object, so we go to that conditional and we start messing around.
 ---
 
 ```js
+function deepEqual(a, b) {
+	// if (a === b) {
+	//	return true;
+	// }
+	// if (!a || !b) {
+	//	return false;
+	// }
+	// if (Array.isArray(a)) {
+	//	return a.every(function(item, i) {
+	//		return deepEqual(item, b[i]);
+	//	});
+	// }
+	if (typeof a === 'object') {
+		return Object.keys(a).every(function(key) {
+			return deepEqual(a[key], b[key]);
+		});
+	}
+	return false;
+}
+```
+
+^ Super standad stuff. Not particularly fancy. You run that on these trees and it will tell you that there's a difference, but
+we're interested in where the differences lie. To do that we have to add a few things. We know that each node in the tree is likely
+to be an object, so we go to that conditional and we start messing around.
+
+---
+
+```js
+if (typeof a === 'object') {
+    return Object.keys(a).every(function(key) {
+        return deepEqual(a[key], b[key]);
+    });
+}
+return false;
+```
+
+---
+
+```js
 if (typeof a === 'object') {
 	var equal = Object.keys(a).every(function(key) {
 		return deepEqual(a[key], b[key]);
 	});
-	if (!equal) {	
-		 // log the type of any nodes that aren't equal
-		console.log('[' + a.type + '] => [' + b.type + ']');
-	}
 	return equal;
 }
+return false;
+```
 
-// log the any raw values that aren't equal
+---
+
+```js
+if (typeof a === 'object') {
+	// var equal = Object.keys(a).every(function(key) {
+	//	return deepEqual(a[key], b[key]);
+	// });
+	if (!equal) {	
+		console.log('[' + a.type + '] => [' + b.type + ']');
+	}
+	// return equal;
+}
+
 console.log('"' + a + '" => "' + b + '"');
+// return false;
 ```
 
 ^ we'll modify this to log the node types when they aren't the same. we'll also log
@@ -557,7 +725,7 @@ git diff --raw | node compare.js
 ```js
 "log" => "error"
 [Identifier] => [Identifier]
-[MemberExpression] => [MemberExpression]
+[MemberExpressio] => [MemberExpression]
 [CallExpression] => [CallExpression]
 [ExpressionStatement] => [ExpressionStatement]
 [Program] => [Program]
@@ -587,8 +755,11 @@ more about what changed.
 ^ Of course where this cool tree diff falls apart is when you have more than 1 or 2 small changes. Here's a progran with around 30 lines.
 
 ---
-# *I Can't process this tree*
-# in my head
+
+![](images/trees.jpg)
+
+## *I Can't process this tree*
+## in my head
 
 ---
 
@@ -605,10 +776,6 @@ more about what changed.
 ^ What would a better diff do. We have the trees, let's do somethign with them.
 To keep this simple, but still useful I want to look at how you might go about detecting breaking changes.
 Which we'll simply define as changes to inputs and outputs. How might we detect them?
-
----
-
-# Let's talk about building a house
 
 ---
 
@@ -737,13 +904,105 @@ esrecurse.visit(diff.before, {
 	},
 	
 	// function a() {}
+	// FunctionDeclaration: function(node) {
+	//	  var details = inspectFunction(node.declaration);
+	//	  functions[details.name].before = details;
+	// }
+});
+```
+
+---
+
+# Visiting Our Trees
+
+```js
+esrecurse.visit(diff.before, {
+
+	// export function a() {}
+	ExportNamedDeclaration: function(node) { 
+		var details = inspectFunction(node.declaration, "exported");
+		functions[details.name].before = details;
+	},
+	
+	// function a() {}
 	FunctionDeclaration: function(node) {
 		var details = inspectFunction(node.declaration);
 		functions[details.name].before = details;
 	}
-	
 });
 ```
+
+---
+
+# Inspecting Function Declarations
+
+```js
+
+function inspectFunction(node, visiblity) {
+	return {
+		name: node.id.name, // "buildHouse",
+		// params: node.params.map(function(param) {
+		//	return param.name;
+		// }), // ["lot", "color", "size", ...]
+		// visibility: visiblity || "private",
+		// outputType: getOutputType(node)
+	};
+}
+```
+
+^ Let's see what that function looks like....We care about a few things. 
+1. Let's get the name of the function.
+2. All of it's paramaters
+3. We have something called visiblity which will tell us if it's being exported or not.
+3. Lastly we get the output type.. >This is hard., but basically we just look to see if there's a callback as the last paramater...
+
+---
+
+# Inspecting Function Declarations
+
+```js
+
+function inspectFunction(node, visiblity) {
+	return {
+		name: node.id.name, // "buildHouse"
+		params: node.params.map(function(param) {
+			return param.name;
+		}), // ["lot", "color", "size", ...]
+		// visibility: visiblity || "private",
+		// outputType: getOutputType(node)
+	};
+}
+```
+
+^ Let's see what that function looks like....We care about a few things. 
+1. Let's get the name of the function.
+2. All of it's paramaters
+3. We have something called visiblity which will tell us if it's being exported or not.
+3. Lastly we get the output type.. >This is hard., but basically we just look to see if there's a callback as the last paramater...
+
+---
+
+# Inspecting Function Declarations
+
+```js
+
+function inspectFunction(node, visiblity) {
+	return {
+		name: node.id.name, // "buildHouse"
+		params: node.params.map(function(param) {
+			return param.name;
+		}), // ["lot", "color", "size", ...]
+		visibility: visiblity || "private",
+		// outputType: getOutputType(node)
+	};
+}
+```
+
+^ Let's see what that function looks like....We care about a few things. 
+1. Let's get the name of the function.
+2. All of it's paramaters
+3. We have something called visiblity which will tell us if it's being exported or not.
+3. Lastly we get the output type.. >This is hard., but basically we just look to see if there's a callback as the last paramater...
 
 ---
 
@@ -828,15 +1087,52 @@ names, their paramaters and the output type. Let's put it all together....
 
 ```js
 function getReadableOutput(functions) {
-
 	return Object.keys(functions).reduce(function(prev, curr, i) {
+		// var name = curr;
+		// var visibility = functions[name].after.visibility;
+		// var whatHappened = getWhatHappened(functions[name]);
+		// return prev + `${i + 1}. The ${visibility} ${name} function ${whatHappened}.\n`;
+	}, "");
+}
+```
 
+^ So for this thing we 	use reduce() on the array of function names to generate a string
+We start by seeding the "previous" with an empty string and just keep adding to it with
+information about the current function. It's pretty neat. For our final step we reveal
+the magic in the `getWhatHappened` function. This is what actually converts our
+data human readable form.
+
+---
+
+# Meaningful Data
+
+```js
+function getReadableOutput(functions) {
+	return Object.keys(functions).reduce(function(prev, curr, i) {
 		var name = curr;
 		var visibility = functions[name].after.visibility;
 		var whatHappened = getWhatHappened(functions[name]);
-		
+		// return prev + `${i + 1}. The ${visibility} ${name} function ${whatHappened}.\n`;
+	}, "");
+}
+```
+
+^ So for this thing we 	use reduce() on the array of function names to generate a string
+We start by seeding the "previous" with an empty string and just keep adding to it with
+information about the current function. It's pretty neat. For our final step we reveal
+the magic in the `getWhatHappened` function. This is what actually converts our
+data human readable form.
+
+---
+# Meaningful Data
+
+```js
+function getReadableOutput(functions) {
+	return Object.keys(functions).reduce(function(prev, curr, i) {
+		var name = curr;
+		var visibility = functions[name].after.visibility;
+		var whatHappened = getWhatHappened(functions[name]);
 		return prev + `${i + 1}. The ${visibility} ${name} function ${whatHappened}.\n`;
-			
 	}, "");
 }
 ```
