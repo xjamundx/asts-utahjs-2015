@@ -118,6 +118,22 @@ acorn.parse("console.log('UtahJS')", { ecmaVersion: 6 });
 
 ^ They're in browsers, in transpilers, minifiers. All of the cool build tools these days 
 are relying on ASTs to safely turn your code into play doe. Now why should you care? Wel...
+Let's talk about three areas where ASTs are awesome.
+
+---
+
+# Things to do with an AST
+
+```md
+1. Build-Time Code Transformation
+2. One-Off Code Migration 
+3. Code Inspection
+```
+
+---
+
+## Code
+## __*Tranformation*__
 
 ---
 
@@ -220,6 +236,148 @@ function swapWithExpression(node, parent) {
     ]);
 }
 ```
+
+^ So finally we return a variable declaration and we've flipped it. Looks lke this..
+
+---
+
+# Babel Plugin Results
+
+```js
+// function declaration
+function help() {}
+
+// transformed to a function expression
+var help = function() {}
+```
+
+^ ASTs are great for transforming code, but it's also great for inspecting code. Let's look
+at how we'd make an ESLint rule.
+
+---
+
+## Code
+## __*Migration*__
+
+^ That's good for things like ES6 or other build-time transformations of your codebase, but what
+one off transitions? Upgrading frmo AMD to CommonJS or moving from Prototypes to Classes or whatever?s
+
+---
+
+![original](images/jscodeshift.png)
+
+^ Another tool that's pretty new in this space is called jscode shift. This is more for one-time changes.
+It powers all of facebook "react codemods", but it's very flexibile.
+
+---
+
+# jscodeshift example
+
+```js
+module.exports = function(fileInfo, api) {
+    return api.jscodeshift(fileInfo.source)
+    //    .findVariableDeclarators('foo')
+    //    .renameTo('bar')
+    //    .toSource();
+};
+
+```
+
+---
+
+# jscodeshift example
+
+```js
+module.exports = function(fileInfo, api) {
+    return api.jscodeshift(fileInfo.source)
+        .findVariableDeclarators('foo')
+    //    .renameTo('bar')
+    //    .toSource();
+};
+
+```
+
+^ Another tool that's pretty new in this space is called jscode shift. This is more for one-time changes.
+It powers all of facebook "react codemods", but it's very flexibile.
+
+---
+# jscodeshift example
+
+```js
+module.exports = function(fileInfo, api) {
+    return api.jscodeshift(fileInfo.source)
+        .findVariableDeclarators('foo')
+        .renameTo('bar')
+    //    .toSource();
+};
+
+```
+
+^ Another tool that's pretty new in this space is called jscode shift. This is more for one-time changes.
+It powers all of facebook "react codemods", but it's very flexibile.
+
+---
+# jscodeshift example
+
+```js
+module.exports = function(fileInfo, api) {
+    return api.jscodeshift(fileInfo.source)
+        .findVariableDeclarators('foo')
+        .renameTo('bar')
+        .toSource();
+};
+
+```
+
+^ Another tool that's pretty new in this space is called jscode shift. This is more for one-time changes.
+It powers all of facebook "react codemods", but it's very flexibile.
+
+
+
+---
+
+# jscodeshift results
+
+
+```js
+// this gets
+var foo = "UtahJS";
+
+// transformed to
+var bar = "UtahJS"
+
+
+```
+
+
+---
+
+## Code
+## __*Inspection*__
+
+^ Inspecting code is the best....I love eslint bla bla bla a
+
+---
+
+![](images/eslint.png)
+
+---
+
+
+# *Custom Lint Rules*
+
+```js
+// lib/rules/no-class.js
+module.exports = function(context) {
+	return {
+		"ClassDeclaration": function(node) {
+			context.report(node, "Your code has no class");
+		}
+	}
+}
+```
+
+^ Simple ESLint rule to warn about using ES6 classes.
 
 ---
 
@@ -373,9 +531,9 @@ console.error("SomeOtherConf");
 
 ---
 
-# __*Yes we can!*__
+# __Yes!!__
 
-^ And do you know why. Because Syntax Trees are great is why.
+^ YES! Because trees. Here's how we'll do it.
 
 ---
 
@@ -420,14 +578,18 @@ git diff --raw | node compare.js
 
 ----
 
+# A Better Diff
+
 ```js
-// let's read all of this input from stdin into an array
+// turn stdin into an array of lines
 var lines = fs.readFileSync('/dev/stdin').toString().split('\n');
 ```
 
 ^ let's read all of the input off of stdin
 
 ---
+
+# A Better Diff
 
 ```js
 // lines now looks something like this
@@ -436,6 +598,8 @@ var lines = fs.readFileSync('/dev/stdin').toString().split('\n');
 ^ yep. following me? because we're going to move quickly.
 
 ---
+
+# A Better Diff
 
 ```js
 lines.map(function(line) {
@@ -448,6 +612,8 @@ lines.map(function(line) {
 
 ---
 
+# A Better Diff
+
 ```js
 lines.map(function(line) {
 	var parts = line.split(' ');
@@ -458,6 +624,7 @@ lines.map(function(line) {
 ^ next we'll map each of these lines into a tuple of the two important parts of that line
 
 ---
+# A Better Diff
 
 ```js
 lines.map(function(line) {
@@ -469,6 +636,7 @@ lines.map(function(line) {
 ^ next we'll map each of these lines into a tuple of the two important parts of that line
 
 ---
+# A Better Diff
 
 ```js
 // the key parts of our git diff
@@ -488,6 +656,7 @@ espree.parse("console.log('UtahJS)");
 tuple of files into some trees, sound goood?
 
 ---
+
 
 ```js
 .map(function(files) {
@@ -530,22 +699,7 @@ tuple of files into some trees, sound goood?
 	};
 })
 ```
-^ And now: Trees
-
----
-
-```js
-.map(function(files) {
-	var after = fs.readFileSync(files[0]);
-	var before = child_process.execSync("git show" + files[1]);
-	return {
-		filename: files[0],
-		before: espree.parse(before, options),
-		after: espree.parse(after, options)
-	};
-})
-```
-^ And now: Trees
+^ And now you end up with this array of trees. which you could also call a forest. Anywya it looks like this.`
 
 ---
 
@@ -648,34 +802,6 @@ to be an object, so we go to that conditional and we start messing around.
 ---
 
 ```js
-function deepEqual(a, b) {
-	// if (a === b) {
-	//	return true;
-	// }
-	// if (!a || !b) {
-	//	return false;
-	// }
-	// if (Array.isArray(a)) {
-	//	return a.every(function(item, i) {
-	//		return deepEqual(item, b[i]);
-	//	});
-	// }
-	if (typeof a === 'object') {
-		return Object.keys(a).every(function(key) {
-			return deepEqual(a[key], b[key]);
-		});
-	}
-	return false;
-}
-```
-
-^ Super standad stuff. Not particularly fancy. You run that on these trees and it will tell you that there's a difference, but
-we're interested in where the differences lie. To do that we have to add a few things. We know that each node in the tree is likely
-to be an object, so we go to that conditional and we start messing around.
-
----
-
-```js
 if (typeof a === 'object') {
     return Object.keys(a).every(function(key) {
         return deepEqual(a[key], b[key]);
@@ -761,19 +887,8 @@ more about what changed.
 ## *I Can't process this tree*
 ## in my head
 
----
 
-# Toward A Better Diff
-
-
-```md
-- require() statement changes?
-- Changes to variables?
-- Function argument changes
-- Breaking Changes?
-```
-
-^ What would a better diff do. We have the trees, let's do somethign with them.
+^ We need something beter.?What would a better diff do? We have the trees, let's do somethign with them.
 To keep this simple, but still useful I want to look at how you might go about detecting breaking changes.
 Which we'll simply define as changes to inputs and outputs. How might we detect them?
 
